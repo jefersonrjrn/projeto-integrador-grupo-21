@@ -84,6 +84,13 @@ Entre como `thiago@example.test` e valide:
 
 ## 6. Checklist de desbloqueio
 
+- No modo de demonstração, solicite o código e confirme que `123456` é exibido.
+- O campo aceita exatamente seis dígitos e ignora outros caracteres.
+- Quatro códigos incorretos retornam erro recuperável; a quinta tentativa bloqueia o desafio.
+- Um código expirado ou bloqueado oferece a opção de solicitar um novo.
+- Após o sucesso, o estado da conta e o dashboard são atualizados sem novo login.
+- Tentar reutilizar o mesmo desafio deve retornar conflito.
+
 Ainda como Thiago:
 
 1. Abra “Desbloqueio de conta”.
