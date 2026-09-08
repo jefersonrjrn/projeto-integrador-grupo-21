@@ -28,11 +28,11 @@ uv sync --locked --extra dev
 
 O arquivo `.env` fica apenas no computador de cada pessoa. Não o envie ao GitHub.
 
-Crie os dados de demonstração e garanta a tabela usada no desbloqueio de conta:
+Crie o esquema e os dados de demonstração:
 
 ```powershell
+uv run --locked --extra dev alembic upgrade head
 uv run --locked --extra dev python -m app.db.seed
-uv run --locked --extra dev python -m app.db.ensure_schema
 ```
 
 Inicie a API:
@@ -106,7 +106,7 @@ Faça logout e entre como `mateus@example.test`:
 | Problema | Ação |
 |---|---|
 | Erro de CORS | Confirme que `backend/.env` foi criado a partir de `.env.example`, reinicie a API e use a URL do Vite. |
-| `relation "unlock_requests" does not exist` | Execute `python -m app.db.ensure_schema` dentro de `backend` e reinicie a API. |
+| Uma tabela da aplicação não existe | Execute `alembic upgrade head` dentro de `backend` e confira a configuração de `DATABASE_URL`. |
 | `npm` não é reconhecido | Instale Node.js, feche e abra o PowerShell novamente. |
 | Porta 5173 ou 8000 ocupada | Feche processos antigos do Vite/Uvicorn ou use a URL exibida no terminal. |
 | Dados antigos ou inconsistentes | Em ambiente local, pare a API e execute `docker compose down -v`, depois repita os passos das seções 2 e 3. Isso apaga somente dados locais fictícios. |

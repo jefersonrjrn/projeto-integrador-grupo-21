@@ -37,14 +37,13 @@ Em um terminal:
 ```bash
 cd backend
 uv sync --locked --extra dev
+uv run --locked --extra dev alembic upgrade head
 uv run --locked --extra dev python -m app.db.seed
-uv run --locked --extra dev python -m app.db.ensure_schema
 uv run --locked --extra dev uvicorn app.main:app --reload
 ```
 
-A criação do esquema acima ainda usa os comandos existentes. A substituição
-por migrations completas será feita na próxima etapa de correções; não execute
-o Alembic atual esperando que ele crie todas as tabelas de um banco vazio.
+As migrations são a única fonte de criação e alteração do esquema. O seed pressupõe
+que `alembic upgrade head` terminou com sucesso e nunca substitui uma migration.
 
 Em outro terminal:
 

@@ -23,5 +23,6 @@ erDiagram
 - `ticket_status`: OPEN, TRIAGE, IN_PROGRESS, RESOLVED
 - `unlock_status`: PENDING, VERIFIED, EXPIRED, BLOCKED
 
-O DDL completo esta em `database/schema.sql`. As migrations equivalentes ficam em
-`backend/migrations/`, geradas via Alembic a partir dos models em `backend/app/models/`.
+O DDL de referência está em `database/schema.sql`. A migration inicial executável fica
+em `backend/migrations/versions/0001_initial_schema.py` e deve permanecer sincronizada
+com os models de `backend/app/models/`.
