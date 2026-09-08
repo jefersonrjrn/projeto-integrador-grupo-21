@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 
 import { apiFetch, ApiError } from "../api/client";
+import { useAuth } from "../auth/AuthContext";
 import { LoadingState, EmptyState, ErrorState } from "../components/AsyncState";
 import type { TicketStatus, TicketSummary } from "../types/domain";
 
@@ -24,10 +25,11 @@ const STATUS_OPTIONS: { value: TicketStatus | ""; label: string }[] = [
 ];
 
 export default function TechnicianQueuePage() {
+  const { user } = useAuth();
   const [statusFilter, setStatusFilter] = useState<TicketStatus | "">("");
 
   const query = useQuery({
-    queryKey: ["technician-queue", statusFilter],
+    queryKey: ["user", user?.id, "technician-queue", statusFilter],
     queryFn: () => {
       const params = new URLSearchParams();
       if (statusFilter) params.set("status_filter", statusFilter);

@@ -4,17 +4,19 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Alert, Box, Button, Paper, Typography } from "@mui/material";
 
 import { apiFetch, ApiError } from "../api/client";
+import { useAuth } from "../auth/AuthContext";
 import { LoadingState, ErrorState } from "../components/AsyncState";
 import type { ArticleDetail } from "../types/domain";
 
 export default function ArticleDetailPage() {
+  const { user } = useAuth();
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
   const query = useQuery({
-    queryKey: ["article", slug],
+    queryKey: ["user", user?.id, "article", slug],
     queryFn: () => apiFetch<ArticleDetail>(`/api/v1/articles/${slug}`),
     enabled: Boolean(slug),
   });
@@ -31,7 +33,9 @@ export default function ArticleDetailPage() {
           ? "Obrigado pelo feedback. Ficamos felizes que o artigo ajudou."
           : "Feedback registrado. Voce pode abrir um chamado para receber ajuda.",
       );
-      queryClient.invalidateQueries({ queryKey: ["article", slug] });
+      queryClient.invalidateQueries({
+        queryKey: ["user", user?.id, "article", slug],
+      });
     },
   });
 

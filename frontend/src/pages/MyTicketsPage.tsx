@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 
 import { apiFetch, ApiError } from "../api/client";
+import { useAuth } from "../auth/AuthContext";
 import { LoadingState, EmptyState, ErrorState } from "../components/AsyncState";
 import type { TicketSummary } from "../types/domain";
 
@@ -21,8 +22,9 @@ const STATUS_COLOR: Record<string, "default" | "warning" | "info" | "success"> =
   };
 
 export default function MyTicketsPage() {
+  const { user } = useAuth();
   const query = useQuery({
-    queryKey: ["my-tickets"],
+    queryKey: ["user", user?.id, "my-tickets"],
     queryFn: () => apiFetch<TicketSummary[]>("/api/v1/tickets"),
   });
 

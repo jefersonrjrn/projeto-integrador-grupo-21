@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 
 import { apiFetch, ApiError } from "../api/client";
+import { useAuth } from "../auth/AuthContext";
 import { LoadingState, EmptyState, ErrorState } from "../components/AsyncState";
 import type { ArticleCategory, ArticleSummary } from "../types/domain";
 
@@ -26,11 +27,12 @@ const CATEGORIES: { value: ArticleCategory | ""; label: string }[] = [
 ];
 
 export default function ArticlesPage() {
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<ArticleCategory | "">("");
 
   const query = useQuery({
-    queryKey: ["articles", search, category],
+    queryKey: ["user", user?.id, "articles", search, category],
     queryFn: () => {
       const params = new URLSearchParams();
       if (search) params.set("q", search);

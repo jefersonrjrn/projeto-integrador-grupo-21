@@ -6,7 +6,7 @@ from app.models.user import User
 
 
 def authenticate(db: Session, email: str, password: str) -> tuple[User, str, int]:
-    normalized_email = email.lower()
+    normalized_email = email.strip().lower()
     user = db.query(User).filter(User.email == normalized_email).first()
 
     if not user or not verify_password(password, user.password_hash):

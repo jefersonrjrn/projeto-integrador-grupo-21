@@ -31,7 +31,7 @@ export default function DashboardPage() {
   const isTechnician = user?.role === "TECHNICIAN";
 
   const query = useQuery({
-    queryKey: ["dashboard-summary", user?.role],
+    queryKey: ["user", user?.id, "dashboard-summary"],
     queryFn: () =>
       apiFetch<DashboardEmployeeSummary | DashboardTechnicianSummary>(
         "/api/v1/dashboard/summary",

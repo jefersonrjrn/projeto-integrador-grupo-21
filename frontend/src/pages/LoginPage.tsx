@@ -13,7 +13,7 @@ import { useAuth } from "../auth/AuthContext";
 import { ApiError } from "../api/client";
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, sessionMessage } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("thiago@example.test");
   const [password, setPassword] = useState("");
@@ -58,6 +58,11 @@ export default function LoginPage() {
           Ambiente de demonstracao. Use as credenciais ficticias fornecidas pelo
           grupo.
         </Alert>
+        {sessionMessage && (
+          <Alert severity="warning" sx={{ mb: 2 }} aria-live="polite">
+            {sessionMessage}
+          </Alert>
+        )}
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}

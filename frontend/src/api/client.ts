@@ -1,4 +1,8 @@
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+export const AUTH_EXPIRED_EVENT = "auth:expired";
+
+const ACCESS_TOKEN_KEY = "access_token";
+const ACCESS_TOKEN_EXPIRES_AT_KEY = "access_token_expires_at";
 
 export class ApiError extends Error {
   status: number;
@@ -10,7 +14,30 @@ export class ApiError extends Error {
 }
 
 function getToken(): string | null {
-  return sessionStorage.getItem("access_token");
+  return sessionStorage.getItem(ACCESS_TOKEN_KEY);
+}
+
+export function saveAuthSession(
+  accessToken: string,
+  expiresIn: number,
+): number {
+  const expiresAt = Date.now() + expiresIn * 1000;
+  sessionStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+  sessionStorage.setItem(ACCESS_TOKEN_EXPIRES_AT_KEY, String(expiresAt));
+  return expiresAt;
+}
+
+export function getAuthExpiration(): number | null {
+  if (!getToken()) return null;
+  const value = sessionStorage.getItem(ACCESS_TOKEN_EXPIRES_AT_KEY);
+  if (!value) return null;
+  const expiresAt = Number(value);
+  return Number.isFinite(expiresAt) ? expiresAt : null;
+}
+
+export function clearAuthSession(): void {
+  sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+  sessionStorage.removeItem(ACCESS_TOKEN_EXPIRES_AT_KEY);
 }
 
 export async function apiFetch<T>(
@@ -27,6 +54,10 @@ export async function apiFetch<T>(
   const response = await fetch(`${API_URL}${path}`, { ...options, headers });
 
   if (!response.ok) {
+    if (response.status === 401 && token) {
+      clearAuthSession();
+      window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
+    }
     let detail = "Erro inesperado. Tente novamente.";
     try {
       const body = await response.json();

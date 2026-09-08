@@ -38,7 +38,7 @@ export default function TicketDetailPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const query = useQuery({
-    queryKey: ["ticket", id],
+    queryKey: ["user", user?.id, "ticket", id],
     queryFn: () => apiFetch<TicketDetail>(`/api/v1/tickets/${id}`),
     enabled: Boolean(id),
   });
@@ -50,7 +50,9 @@ export default function TicketDetailPage() {
         body: JSON.stringify({ status, comment: comment || undefined }),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ticket", id] });
+      queryClient.invalidateQueries({
+        queryKey: ["user", user?.id, "ticket", id],
+      });
       setComment("");
       setErrorMessage(null);
     },
@@ -67,7 +69,9 @@ export default function TicketDetailPage() {
         body: JSON.stringify({ priority }),
       }),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["ticket", id] }),
+      queryClient.invalidateQueries({
+        queryKey: ["user", user?.id, "ticket", id],
+      }),
   });
 
   if (query.isLoading) return <LoadingState label="Carregando chamado..." />;

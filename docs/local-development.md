@@ -56,6 +56,20 @@ npm run dev
 Abra `http://localhost:5173`; Swagger em `http://localhost:8000/docs`.
 `GET /health` retorna 200 quando o banco está acessível e 503 quando indisponível.
 
+## Atualizar o contrato da API
+
+Sempre que schemas ou rotas mudarem, atualize os artefatos versionados nesta ordem:
+
+```bash
+cd backend
+uv run --locked --extra dev python scripts/export_openapi.py
+cd ../frontend
+npm run api:types
+```
+
+O arquivo `docs/openapi.json` é o contrato canônico, e
+`frontend/src/types/api.generated.ts` contém os tipos consumidos pela interface.
+
 ## Verificar
 
 ```bash

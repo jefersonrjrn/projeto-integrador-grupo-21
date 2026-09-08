@@ -30,11 +30,15 @@ export default function App() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/ajuda" element={<ArticlesPage />} />
           <Route path="/ajuda/:slug" element={<ArticleDetailPage />} />
-          <Route path="/desbloqueio" element={<AccountUnlockPage />} />
-          <Route path="/chamados/novo" element={<NewTicketPage />} />
-          <Route path="/meus-chamados" element={<MyTicketsPage />} />
           <Route path="/chamados/:id" element={<TicketDetailPage />} />
-          <Route path="/tecnico/chamados" element={<TechnicianQueuePage />} />
+          <Route element={<ProtectedRoute allowedRoles={["EMPLOYEE"]} />}>
+            <Route path="/desbloqueio" element={<AccountUnlockPage />} />
+            <Route path="/chamados/novo" element={<NewTicketPage />} />
+            <Route path="/meus-chamados" element={<MyTicketsPage />} />
+          </Route>
+          <Route element={<ProtectedRoute allowedRoles={["TECHNICIAN"]} />}>
+            <Route path="/tecnico/chamados" element={<TechnicianQueuePage />} />
+          </Route>
         </Route>
       </Route>
 

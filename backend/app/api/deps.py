@@ -2,7 +2,7 @@ import uuid
 
 import jwt
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.core.security import decode_access_token
@@ -10,27 +10,35 @@ from app.db.session import get_db
 from app.models.enums import UserRole
 from app.models.user import User
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
+bearer_scheme = HTTPBearer(
+    auto_error=False,
+    bearerFormat="JWT",
+    description="Informe somente o token retornado por POST /api/v1/auth/login.",
+)
 
 
 def get_current_user(
-    token: str | None = Depends(oauth2_scheme), db: Session = Depends(get_db)
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    db: Session = Depends(get_db),
 ) -> User:
     credentials_error = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED, detail="Sessao ausente ou invalida"
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Sessao ausente, expirada ou invalida",
+        headers={"WWW-Authenticate": "Bearer"},
     )
 
-    if not token:
+    if credentials is None or credentials.scheme.lower() != "bearer":
         raise credentials_error
 
     try:
-        payload = decode_access_token(token)
+        payload = decode_access_token(credentials.credentials)
         user_id = uuid.UUID(payload["sub"])
+        token_role = UserRole(payload["role"])
     except (jwt.PyJWTError, KeyError, ValueError) as exc:
         raise credentials_error from exc
 
     user = db.query(User).filter(User.id == user_id).first()
-    if not user or not user.is_active:
+    if not user or not user.is_active or user.role != token_role:
         raise credentials_error
 
     return user
