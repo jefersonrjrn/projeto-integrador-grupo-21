@@ -406,6 +406,81 @@
         ],
         "parameters": [
           {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/TicketStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "priority",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/TicketPriority"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Priority"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/TicketCategory"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "name": "assignee_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Assignee Id"
+            }
+          },
+          {
+            "name": "unassigned",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Unassigned"
+            }
+          },
+          {
             "name": "status_filter",
             "in": "query",
             "required": false,
@@ -418,8 +493,10 @@
                   "type": "null"
                 }
               ],
+              "deprecated": true,
               "title": "Status Filter"
-            }
+            },
+            "deprecated": true
           },
           {
             "name": "priority_filter",
@@ -434,8 +511,10 @@
                   "type": "null"
                 }
               ],
+              "deprecated": true,
               "title": "Priority Filter"
-            }
+            },
+            "deprecated": true
           }
         ],
         "responses": {
@@ -701,8 +780,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "type": "object",
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/DashboardEmployeeSummary"
+                    },
+                    {
+                      "$ref": "#/components/schemas/DashboardTechnicianSummary"
+                    }
+                  ],
                   "title": "Response Get Summary Api V1 Dashboard Summary Get"
                 }
               }
@@ -838,6 +923,63 @@
           "category"
         ],
         "title": "ArticleSummary"
+      },
+      "DashboardEmployeeSummary": {
+        "properties": {
+          "account_locked": {
+            "type": "boolean",
+            "title": "Account Locked"
+          },
+          "open_tickets": {
+            "type": "integer",
+            "title": "Open Tickets"
+          },
+          "in_progress_tickets": {
+            "type": "integer",
+            "title": "In Progress Tickets"
+          },
+          "resolved_tickets": {
+            "type": "integer",
+            "title": "Resolved Tickets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "account_locked",
+          "open_tickets",
+          "in_progress_tickets",
+          "resolved_tickets"
+        ],
+        "title": "DashboardEmployeeSummary"
+      },
+      "DashboardTechnicianSummary": {
+        "properties": {
+          "unassigned_tickets": {
+            "type": "integer",
+            "title": "Unassigned Tickets"
+          },
+          "by_status": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "By Status"
+          },
+          "by_priority": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "By Priority"
+          }
+        },
+        "type": "object",
+        "required": [
+          "unassigned_tickets",
+          "by_status",
+          "by_priority"
+        ],
+        "title": "DashboardTechnicianSummary"
       },
       "HTTPValidationError": {
         "properties": {
@@ -976,6 +1118,18 @@
             "format": "date-time",
             "title": "Updated At"
           },
+          "resolved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved At"
+          },
           "description": {
             "type": "string",
             "title": "Description"
@@ -985,8 +1139,7 @@
               "$ref": "#/components/schemas/TicketEventRead"
             },
             "type": "array",
-            "title": "Events",
-            "default": []
+            "title": "Events"
           }
         },
         "type": "object",
@@ -1001,6 +1154,7 @@
           "assignee",
           "created_at",
           "updated_at",
+          "resolved_at",
           "description"
         ],
         "title": "TicketDetail"
@@ -1016,6 +1170,9 @@
             "type": "string",
             "format": "uuid",
             "title": "Author Id"
+          },
+          "author": {
+            "$ref": "#/components/schemas/UserRef"
           },
           "from_status": {
             "anyOf": [
@@ -1051,6 +1208,7 @@
         "required": [
           "id",
           "author_id",
+          "author",
           "from_status",
           "to_status",
           "comment",
@@ -1160,6 +1318,18 @@
             "type": "string",
             "format": "date-time",
             "title": "Updated At"
+          },
+          "resolved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved At"
           }
         },
         "type": "object",
@@ -1173,7 +1343,8 @@
           "requester",
           "assignee",
           "created_at",
-          "updated_at"
+          "updated_at",
+          "resolved_at"
         ],
         "title": "TicketSummary"
       },

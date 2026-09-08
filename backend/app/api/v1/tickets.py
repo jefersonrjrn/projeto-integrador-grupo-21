@@ -1,11 +1,13 @@
 import uuid
+from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import status as http_status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, require_employee, require_technician
 from app.db.session import get_db
-from app.models.enums import TicketPriority, TicketStatus
+from app.models.enums import TicketCategory, TicketPriority, TicketStatus
 from app.schemas.ticket import (
     TicketAssignmentUpdate,
     TicketCreate,
@@ -44,6 +46,7 @@ def _to_summary(ticket) -> TicketSummary:
         assignee=_user_ref(ticket.assignee) if ticket.assignee else None,
         created_at=ticket.created_at,
         updated_at=ticket.updated_at,
+        resolved_at=ticket.resolved_at,
     )
 
 
@@ -53,6 +56,7 @@ def _to_detail(ticket) -> TicketDetail:
         TicketEventRead(
             id=event.id,
             author_id=event.author_id,
+            author=_user_ref(event.author),
             from_status=event.from_status,
             to_status=event.to_status,
             comment=event.comment,
@@ -74,14 +78,42 @@ def open_ticket(
 
 @router.get("", response_model=list[TicketSummary])
 def get_tickets(
-    status_filter: TicketStatus | None = None,
-    priority_filter: TicketPriority | None = None,
+    ticket_status: Annotated[TicketStatus | None, Query(alias="status")] = None,
+    priority: TicketPriority | None = None,
+    category: TicketCategory | None = None,
+    assignee_id: uuid.UUID | None = None,
+    unassigned: bool = False,
+    status_filter: Annotated[TicketStatus | None, Query(deprecated=True)] = None,
+    priority_filter: Annotated[TicketPriority | None, Query(deprecated=True)] = None,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> list[TicketSummary]:
+    if ticket_status is not None and status_filter is not None:
+        raise HTTPException(
+            status_code=http_status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Use apenas um dos parametros: status ou status_filter",
+        )
+    if priority is not None and priority_filter is not None:
+        raise HTTPException(
+            status_code=http_status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Use apenas um dos parametros: priority ou priority_filter",
+        )
+    if assignee_id is not None and unassigned:
+        raise HTTPException(
+            status_code=http_status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="assignee_id e unassigned nao podem ser combinados",
+        )
     return [
         _to_summary(ticket)
-        for ticket in list_tickets(db, current_user, status_filter, priority_filter)
+        for ticket in list_tickets(
+            db,
+            current_user,
+            ticket_status or status_filter,
+            priority or priority_filter,
+            category,
+            assignee_id,
+            unassigned,
+        )
     ]
 
 

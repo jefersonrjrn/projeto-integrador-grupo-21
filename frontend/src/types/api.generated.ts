@@ -305,6 +305,30 @@ export interface components {
       summary: string;
       category: components["schemas"]["ArticleCategory"];
     };
+    /** DashboardEmployeeSummary */
+    DashboardEmployeeSummary: {
+      /** Account Locked */
+      account_locked: boolean;
+      /** Open Tickets */
+      open_tickets: number;
+      /** In Progress Tickets */
+      in_progress_tickets: number;
+      /** Resolved Tickets */
+      resolved_tickets: number;
+    };
+    /** DashboardTechnicianSummary */
+    DashboardTechnicianSummary: {
+      /** Unassigned Tickets */
+      unassigned_tickets: number;
+      /** By Status */
+      by_status: {
+        [key: string]: number;
+      };
+      /** By Priority */
+      by_priority: {
+        [key: string]: number;
+      };
+    };
     /** HTTPValidationError */
     HTTPValidationError: {
       /** Detail */
@@ -368,13 +392,12 @@ export interface components {
        * Format: date-time
        */
       updated_at: string;
+      /** Resolved At */
+      resolved_at: string | null;
       /** Description */
       description: string;
-      /**
-       * Events
-       * @default []
-       */
-      events: components["schemas"]["TicketEventRead"][];
+      /** Events */
+      events?: components["schemas"]["TicketEventRead"][];
     };
     /** TicketEventRead */
     TicketEventRead: {
@@ -388,6 +411,7 @@ export interface components {
        * Format: uuid
        */
       author_id: string;
+      author: components["schemas"]["UserRef"];
       from_status: components["schemas"]["TicketStatus"] | null;
       to_status: components["schemas"]["TicketStatus"];
       /** Comment */
@@ -444,6 +468,8 @@ export interface components {
        * Format: date-time
        */
       updated_at: string;
+      /** Resolved At */
+      resolved_at: string | null;
     };
     /** TokenResponse */
     TokenResponse: {
@@ -763,7 +789,14 @@ export interface operations {
   get_tickets_api_v1_tickets_get: {
     parameters: {
       query?: {
+        status?: components["schemas"]["TicketStatus"] | null;
+        priority?: components["schemas"]["TicketPriority"] | null;
+        category?: components["schemas"]["TicketCategory"] | null;
+        assignee_id?: string | null;
+        unassigned?: boolean;
+        /** @deprecated */
         status_filter?: components["schemas"]["TicketStatus"] | null;
+        /** @deprecated */
         priority_filter?: components["schemas"]["TicketPriority"] | null;
       };
       header?: never;
@@ -976,9 +1009,9 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
+          "application/json":
+            | components["schemas"]["DashboardEmployeeSummary"]
+            | components["schemas"]["DashboardTechnicianSummary"];
         };
       };
     };

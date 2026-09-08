@@ -1,12 +1,14 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models.enums import TicketCategory, TicketPriority, TicketStatus
 
 
 class TicketCreate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     title: str = Field(min_length=5, max_length=160)
     description: str = Field(min_length=10, max_length=2000)
     category: TicketCategory
@@ -18,18 +20,20 @@ class UserRef(BaseModel):
 
 
 class TicketEventRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     author_id: uuid.UUID
+    author: UserRef
     from_status: TicketStatus | None
     to_status: TicketStatus
     comment: str | None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-
 
 class TicketSummary(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     protocol: str
     title: str
@@ -40,14 +44,12 @@ class TicketSummary(BaseModel):
     assignee: UserRef | None
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
+    resolved_at: datetime | None
 
 
 class TicketDetail(TicketSummary):
     description: str
-    events: list[TicketEventRead] = []
+    events: list[TicketEventRead] = Field(default_factory=list)
 
 
 class TicketAssignmentUpdate(BaseModel):
@@ -59,8 +61,18 @@ class TicketPriorityUpdate(BaseModel):
 
 
 class TicketStatusUpdate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     status: TicketStatus
     comment: str | None = Field(default=None, max_length=500)
+
+    @field_validator("comment")
+    @classmethod
+    def normalize_comment(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        return normalized or None
 
 
 class DashboardEmployeeSummary(BaseModel):
