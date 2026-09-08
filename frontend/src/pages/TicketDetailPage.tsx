@@ -45,14 +45,13 @@ export default function TicketDetailPage() {
 
   const statusMutation = useMutation({
     mutationFn: (status: TicketStatus) =>
-      apiFetch(`/api/v1/tickets/${id}/status`, {
+      apiFetch<TicketDetail>(`/api/v1/tickets/${id}/status`, {
         method: "PATCH",
         body: JSON.stringify({ status, comment: comment || undefined }),
       }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["user", user?.id, "ticket", id],
-      });
+    onSuccess: (updatedTicket) => {
+      queryClient.setQueryData(["user", user?.id, "ticket", id], updatedTicket);
+      queryClient.invalidateQueries({ queryKey: ["user", user?.id] });
       setComment("");
       setErrorMessage(null);
     },
@@ -64,15 +63,47 @@ export default function TicketDetailPage() {
 
   const priorityMutation = useMutation({
     mutationFn: (priority: TicketPriority) =>
-      apiFetch(`/api/v1/tickets/${id}/priority`, {
+      apiFetch<TicketDetail>(`/api/v1/tickets/${id}/priority`, {
         method: "PATCH",
         body: JSON.stringify({ priority }),
       }),
-    onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: ["user", user?.id, "ticket", id],
-      }),
+    onSuccess: (updatedTicket) => {
+      queryClient.setQueryData(["user", user?.id, "ticket", id], updatedTicket);
+      queryClient.invalidateQueries({ queryKey: ["user", user?.id] });
+      setErrorMessage(null);
+    },
+    onError: (err) =>
+      setErrorMessage(
+        err instanceof ApiError ? err.message : "Erro ao atualizar prioridade.",
+      ),
   });
+
+  const assignmentMutation = useMutation({
+    mutationFn: () =>
+      apiFetch<TicketDetail>(`/api/v1/tickets/${id}/assignment`, {
+        method: "PATCH",
+        body: JSON.stringify({ assignee_id: user?.id }),
+      }),
+    onSuccess: (updatedTicket) => {
+      queryClient.setQueryData(["user", user?.id, "ticket", id], updatedTicket);
+      queryClient.invalidateQueries({ queryKey: ["user", user?.id] });
+      setErrorMessage(null);
+    },
+    onError: (err) =>
+      setErrorMessage(
+        err instanceof ApiError ? err.message : "Erro ao assumir chamado.",
+      ),
+  });
+
+  function changeStatus(nextStatus: TicketStatus) {
+    if (nextStatus === "OPEN" && !comment.trim()) {
+      setErrorMessage(
+        "Informe um comentario ao retornar o chamado para aberto.",
+      );
+      return;
+    }
+    statusMutation.mutate(nextStatus);
+  }
 
   if (query.isLoading) return <LoadingState label="Carregando chamado..." />;
   if (query.isError) {
@@ -100,6 +131,14 @@ export default function TicketDetailPage() {
       <Typography sx={{ mb: 3, whiteSpace: "pre-line" }}>
         {ticket.description}
       </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        Responsavel: {ticket.assignee?.name ?? "Nao atribuido"}
+      </Typography>
+      {ticket.resolved_at && (
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Resolvido em {new Date(ticket.resolved_at).toLocaleString("pt-BR")}
+        </Typography>
+      )}
 
       {errorMessage && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -107,7 +146,13 @@ export default function TicketDetailPage() {
         </Alert>
       )}
 
-      {isTechnician && (
+      {isTechnician && ticket.status === "RESOLVED" && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          Este chamado esta resolvido e nao pode mais ser alterado.
+        </Alert>
+      )}
+
+      {isTechnician && ticket.status !== "RESOLVED" && (
         <Box
           sx={{
             mb: 3,
@@ -117,6 +162,25 @@ export default function TicketDetailPage() {
             maxWidth: 360,
           }}
         >
+          {!ticket.assignee && (
+            <Button
+              variant="contained"
+              onClick={() => assignmentMutation.mutate()}
+              disabled={assignmentMutation.isPending}
+            >
+              {assignmentMutation.isPending
+                ? "Assumindo..."
+                : "Assumir chamado"}
+            </Button>
+          )}
+          {ticket.assignee?.id === user?.id && (
+            <Alert severity="info">Este chamado esta atribuido a voce.</Alert>
+          )}
+          {ticket.assignee && ticket.assignee.id !== user?.id && (
+            <Alert severity="warning">
+              Este chamado esta atribuido a {ticket.assignee.name}.
+            </Alert>
+          )}
           <TextField
             select
             label="Alterar prioridade"
@@ -138,6 +202,8 @@ export default function TicketDetailPage() {
             minRows={2}
             value={comment}
             onChange={(event) => setComment(event.target.value)}
+            inputProps={{ maxLength: 500 }}
+            helperText={`${comment.length}/500 caracteres`}
           />
 
           <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
@@ -145,7 +211,7 @@ export default function TicketDetailPage() {
               <Button
                 key={nextStatus}
                 variant="contained"
-                onClick={() => statusMutation.mutate(nextStatus)}
+                onClick={() => changeStatus(nextStatus)}
                 disabled={statusMutation.isPending}
               >
                 Mover para {nextStatus}
@@ -176,6 +242,7 @@ export default function TicketDetailPage() {
                 ? `${event.from_status} -> ${event.to_status}`
                 : `Criado como ${event.to_status}`}
             </Typography>
+            <Typography variant="body2">Por {event.author.name}</Typography>
             {event.comment && (
               <Typography variant="body2">{event.comment}</Typography>
             )}

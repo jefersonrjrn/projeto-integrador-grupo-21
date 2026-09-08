@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Alert,
   Button,
@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 
 import { apiFetch, ApiError } from "../api/client";
+import { useAuth } from "../auth/AuthContext";
 import type { TicketCategory, TicketDetail } from "../types/domain";
 
 const CATEGORIES: { value: TicketCategory; label: string }[] = [
@@ -23,6 +24,8 @@ const CATEGORIES: { value: TicketCategory; label: string }[] = [
 ];
 
 export default function NewTicketPage() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const location = useLocation() as {
     state?: { title?: string; category?: TicketCategory };
@@ -43,7 +46,10 @@ export default function NewTicketPage() {
         method: "POST",
         body: JSON.stringify({ title, description, category }),
       }),
-    onSuccess: (ticket) => navigate(`/chamados/${ticket.id}`),
+    onSuccess: async (ticket) => {
+      await queryClient.invalidateQueries({ queryKey: ["user", user?.id] });
+      navigate(`/chamados/${ticket.id}`);
+    },
     onError: (err) =>
       setErrorMessage(
         err instanceof ApiError ? err.message : "Erro ao abrir chamado.",

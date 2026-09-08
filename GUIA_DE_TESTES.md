@@ -106,11 +106,15 @@ Em modo demo, o código aparece na interface. Não existe envio real de e-mail, 
 Faça logout e entre como `mateus@example.test`:
 
 - Acesse a fila técnica de chamados.
+- Use filtros de status, prioridade, categoria e atribuição; confirme que a URL muda e pode ser compartilhada.
 - Abra um chamado sem responsável e assuma-o.
+- Confirme que outro técnico não consegue substituir o responsável atual.
 - Altere a prioridade, se necessário.
 - Faça as transições permitidas: `OPEN -> TRIAGE -> IN_PROGRESS -> RESOLVED`.
-- Verifique que cada transição aparece no histórico do chamado.
+- Ao retornar de triagem ou andamento para aberto, informe um comentário obrigatório.
+- Verifique que cada transição aparece no histórico com nome do autor.
 - Tente alterar um chamado em `RESOLVED`; a API deve bloquear a alteração.
+- No dashboard, abra os atalhos de métricas e confirme que a fila/lista recebe o filtro correspondente.
 
 ## 8. Problemas comuns
 
