@@ -1,6 +1,7 @@
 import uuid
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, require_employee
@@ -12,14 +13,19 @@ from app.schemas.article import (
     ArticleFeedbackResponse,
     ArticleSummary,
 )
-from app.services.article_service import get_article_by_slug, list_articles, upsert_feedback
+from app.services.article_service import (
+    ArticleNotFoundError,
+    get_article_by_slug,
+    list_articles,
+    upsert_feedback,
+)
 
 router = APIRouter(prefix="/api/v1/articles", tags=["base de conhecimento"])
 
 
 @router.get("", response_model=list[ArticleSummary])
 def get_articles(
-    q: str | None = None,
+    q: Annotated[str | None, Query(max_length=100)] = None,
     category: ArticleCategory | None = None,
     db: Session = Depends(get_db),
     _current_user=Depends(get_current_user),
@@ -45,7 +51,12 @@ def send_feedback(
     db: Session = Depends(get_db),
     current_user=Depends(require_employee),
 ) -> ArticleFeedbackResponse:
-    feedback = upsert_feedback(
-        db, article_id=article_id, user_id=current_user.id, resolved=payload.resolved
-    )
+    try:
+        feedback = upsert_feedback(
+            db, article_id=article_id, user_id=current_user.id, resolved=payload.resolved
+        )
+    except ArticleNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Artigo nao encontrado"
+        ) from exc
     return ArticleFeedbackResponse(article_id=feedback.article_id, resolved=feedback.resolved)
