@@ -325,7 +325,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UnlockVerifyResponse"
+                  "$ref": "#/components/schemas/UserRead"
                 }
               }
             }
@@ -1215,7 +1215,8 @@
           "demo_code": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^\\d{6}$"
               },
               {
                 "type": "null"
@@ -1240,6 +1241,9 @@
           },
           "code": {
             "type": "string",
+            "maxLength": 6,
+            "minLength": 6,
+            "pattern": "^\\d{6}$",
             "title": "Code"
           }
         },
@@ -1249,18 +1253,6 @@
           "code"
         ],
         "title": "UnlockVerifyRequest"
-      },
-      "UnlockVerifyResponse": {
-        "properties": {
-          "user": {
-            "$ref": "#/components/schemas/UserRead"
-          }
-        },
-        "type": "object",
-        "required": [
-          "user"
-        ],
-        "title": "UnlockVerifyResponse"
       },
       "UserRead": {
         "properties": {

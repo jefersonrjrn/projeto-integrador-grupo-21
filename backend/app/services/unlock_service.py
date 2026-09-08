@@ -3,6 +3,7 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 from fastapi import HTTPException, status
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
@@ -17,18 +18,30 @@ MAX_ATTEMPTS = 5
 
 
 def request_code(db: Session, user: User) -> tuple[UnlockRequest, str | None]:
-    if not user.account_locked:
+    locked_user = db.execute(
+        select(User).where(User.id == user.id).with_for_update()
+    ).scalar_one_or_none()
+    if locked_user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario nao encontrado")
+    if not locked_user.account_locked:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Conta ja esta desbloqueada"
         )
 
-    db.query(UnlockRequest).filter(
-        UnlockRequest.user_id == user.id, UnlockRequest.status == UnlockStatus.PENDING
-    ).update({"status": UnlockStatus.EXPIRED})
+    db.execute(
+        update(UnlockRequest)
+        .where(
+            UnlockRequest.user_id == locked_user.id,
+            UnlockRequest.status == UnlockStatus.PENDING,
+        )
+        .values(status=UnlockStatus.EXPIRED)
+    )
 
-    raw_code = f"{secrets.randbelow(1_000_000):06d}"
+    raw_code = (
+        settings.demo_unlock_code if settings.demo_mode else f"{secrets.randbelow(1_000_000):06d}"
+    )
     challenge = UnlockRequest(
-        user_id=user.id,
+        user_id=locked_user.id,
         code_hash=hash_password(raw_code),
         status=UnlockStatus.PENDING,
         attempts=0,
@@ -43,11 +56,19 @@ def request_code(db: Session, user: User) -> tuple[UnlockRequest, str | None]:
 
 
 def verify_code(db: Session, user: User, challenge_id: uuid.UUID, code: str) -> User:
-    challenge = (
-        db.query(UnlockRequest)
-        .filter(UnlockRequest.id == challenge_id, UnlockRequest.user_id == user.id)
-        .first()
-    )
+    locked_user = db.execute(
+        select(User).where(User.id == user.id).with_for_update()
+    ).scalar_one_or_none()
+    if locked_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Solicitacao nao encontrada"
+        )
+
+    challenge = db.execute(
+        select(UnlockRequest)
+        .where(UnlockRequest.id == challenge_id, UnlockRequest.user_id == locked_user.id)
+        .with_for_update()
+    ).scalar_one_or_none()
 
     if not challenge:
         raise HTTPException(
@@ -59,24 +80,38 @@ def verify_code(db: Session, user: User, challenge_id: uuid.UUID, code: str) -> 
             status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Limite de tentativas excedido"
         )
 
-    if challenge.expires_at < datetime.now(UTC) or challenge.status == UnlockStatus.EXPIRED:
+    if challenge.status == UnlockStatus.VERIFIED:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Codigo ja utilizado")
+
+    if challenge.expires_at <= datetime.now(UTC) or challenge.status == UnlockStatus.EXPIRED:
         challenge.status = UnlockStatus.EXPIRED
         db.commit()
         raise HTTPException(status_code=status.HTTP_410_GONE, detail="Codigo expirado")
+
+    if challenge.status != UnlockStatus.PENDING:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Solicitacao nao esta pendente"
+        )
 
     if not verify_password(code, challenge.code_hash):
         challenge.attempts += 1
         if challenge.attempts >= MAX_ATTEMPTS:
             challenge.status = UnlockStatus.BLOCKED
         db.commit()
+        if challenge.status == UnlockStatus.BLOCKED:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Limite de tentativas excedido",
+            )
+        remaining_attempts = MAX_ATTEMPTS - challenge.attempts
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Codigo invalido"
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=f"Codigo invalido. Restam {remaining_attempts} tentativas",
         )
 
     challenge.status = UnlockStatus.VERIFIED
     challenge.completed_at = datetime.now(UTC)
-    user.account_locked = False
-    db.add_all([challenge, user])
+    locked_user.account_locked = False
     db.commit()
-    db.refresh(user)
-    return user
+    db.refresh(locked_user)
+    return locked_user

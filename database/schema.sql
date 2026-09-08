@@ -61,6 +61,8 @@ CREATE TABLE unlock_requests (
 
 CREATE INDEX ix_unlock_requests_user_status ON unlock_requests (user_id, status);
 CREATE INDEX ix_unlock_requests_expires_at ON unlock_requests (expires_at);
+CREATE UNIQUE INDEX uq_unlock_requests_pending_user ON unlock_requests (user_id)
+    WHERE status = 'PENDING';
 
 CREATE TABLE tickets (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

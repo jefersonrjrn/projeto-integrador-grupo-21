@@ -31,3 +31,8 @@ def test_cors_origins_are_normalized():
         _env_file=None, cors_origins=" http://localhost:5173, ,http://localhost:4173 "
     )
     assert config.cors_origin_list == ["http://localhost:5173", "http://localhost:4173"]
+
+
+def test_demo_unlock_code_must_have_exactly_six_digits():
+    with pytest.raises(ValidationError, match="demo_unlock_code"):
+        Settings(_env_file=None, demo_unlock_code="12345A")

@@ -482,10 +482,6 @@ export interface components {
       /** Code */
       code: string;
     };
-    /** UnlockVerifyResponse */
-    UnlockVerifyResponse: {
-      user: components["schemas"]["UserRead"];
-    };
     /** UserRead */
     UserRead: {
       /**
@@ -750,7 +746,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["UnlockVerifyResponse"];
+          "application/json": components["schemas"]["UserRead"];
         };
       };
       /** @description Validation Error */

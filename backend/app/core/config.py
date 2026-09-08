@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expires_minutes: int = Field(default=30, gt=0)
     demo_mode: bool = True
+    demo_unlock_code: str = Field(default="123456", pattern=r"^\d{6}$")
     cors_origins: str = "http://localhost:5173,http://localhost:4173"
 
     @property

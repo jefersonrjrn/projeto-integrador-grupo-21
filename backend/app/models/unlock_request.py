@@ -25,6 +25,12 @@ class UnlockRequest(Base):
         CheckConstraint("attempts >= 0 AND attempts <= 5", name="ck_unlock_requests_attempts"),
         Index("ix_unlock_requests_user_status", "user_id", "status"),
         Index("ix_unlock_requests_expires_at", "expires_at"),
+        Index(
+            "uq_unlock_requests_pending_user",
+            "user_id",
+            unique=True,
+            postgresql_where=text("status = 'PENDING'::unlock_status"),
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(

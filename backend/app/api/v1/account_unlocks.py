@@ -7,14 +7,17 @@ from app.schemas.auth import UserRead
 from app.schemas.unlock import (
     UnlockRequestResponse,
     UnlockVerifyRequest,
-    UnlockVerifyResponse,
 )
 from app.services.unlock_service import request_code, verify_code
 
 router = APIRouter(prefix="/api/v1/account-unlocks", tags=["desbloqueio de conta"])
 
 
-@router.post("/request-code", response_model=UnlockRequestResponse)
+@router.post(
+    "/request-code",
+    response_model=UnlockRequestResponse,
+    response_model_exclude_none=True,
+)
 def create_unlock_request(
     db: Session = Depends(get_db), current_user=Depends(require_employee)
 ) -> UnlockRequestResponse:
@@ -24,11 +27,11 @@ def create_unlock_request(
     )
 
 
-@router.post("/verify", response_model=UnlockVerifyResponse)
+@router.post("/verify", response_model=UserRead)
 def verify_unlock_request(
     payload: UnlockVerifyRequest,
     db: Session = Depends(get_db),
     current_user=Depends(require_employee),
-) -> UnlockVerifyResponse:
+) -> UserRead:
     user = verify_code(db, current_user, payload.challenge_id, payload.code)
-    return UnlockVerifyResponse(user=UserRead.model_validate(user))
+    return UserRead.model_validate(user)
