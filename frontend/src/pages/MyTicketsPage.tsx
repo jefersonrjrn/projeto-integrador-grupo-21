@@ -1,17 +1,24 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Chip, List, ListItemButton, ListItemText, Typography } from "@mui/material";
+import {
+  Chip,
+  List,
+  ListItemButton,
+  ListItemText,
+  Typography,
+} from "@mui/material";
 
 import { apiFetch, ApiError } from "../api/client";
 import { LoadingState, EmptyState, ErrorState } from "../components/AsyncState";
 import type { TicketSummary } from "../types/domain";
 
-const STATUS_COLOR: Record<string, "default" | "warning" | "info" | "success"> = {
-  OPEN: "default",
-  TRIAGE: "warning",
-  IN_PROGRESS: "info",
-  RESOLVED: "success",
-};
+const STATUS_COLOR: Record<string, "default" | "warning" | "info" | "success"> =
+  {
+    OPEN: "default",
+    TRIAGE: "warning",
+    IN_PROGRESS: "info",
+    RESOLVED: "success",
+  };
 
 export default function MyTicketsPage() {
   const query = useQuery({
@@ -21,7 +28,10 @@ export default function MyTicketsPage() {
 
   if (query.isLoading) return <LoadingState label="Carregando chamados..." />;
   if (query.isError) {
-    const message = query.error instanceof ApiError ? query.error.message : "Erro ao carregar chamados.";
+    const message =
+      query.error instanceof ApiError
+        ? query.error.message
+        : "Erro ao carregar chamados.";
     return <ErrorState message={message} onRetry={() => query.refetch()} />;
   }
 
@@ -36,12 +46,21 @@ export default function MyTicketsPage() {
       </Typography>
       <List>
         {query.data?.map((ticket) => (
-          <ListItemButton key={ticket.id} component={Link} to={`/chamados/${ticket.id}`}>
+          <ListItemButton
+            key={ticket.id}
+            component={Link}
+            to={`/chamados/${ticket.id}`}
+          >
             <ListItemText
               primary={`${ticket.protocol} - ${ticket.title}`}
               secondary={new Date(ticket.created_at).toLocaleString("pt-BR")}
             />
-            <Chip label={ticket.status} color={STATUS_COLOR[ticket.status]} size="small" sx={{ mr: 1 }} />
+            <Chip
+              label={ticket.status}
+              color={STATUS_COLOR[ticket.status]}
+              size="small"
+              sx={{ mr: 1 }}
+            />
             <Chip label={ticket.priority} variant="outlined" size="small" />
           </ListItemButton>
         ))}

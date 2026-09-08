@@ -25,7 +25,13 @@ MVP acadêmico para reduzir incidentes repetitivos de suporte Nível 1. A aplica
 
 ## Estado
 
-O repositório está na etapa de fundação. As instruções de instalação, execução, testes, credenciais fictícias e URLs públicas serão adicionadas conforme os componentes forem implementados.
+O repositório contém os fluxos iniciais de autenticação, autoajuda, desbloqueio
+demonstrativo e chamados. A adequação das regras de negócio e a cobertura de
+testes estão em andamento; a presença das telas não representa aceite final.
+
+Consulte [Desenvolvimento local](docs/local-development.md) para configurar o
+ambiente e executar as verificações e [Guia de testes](GUIA_DE_TESTES.md) para
+as credenciais fictícias e jornadas manuais. A publicação pública ainda está pendente.
 
 ## Colaboração
 

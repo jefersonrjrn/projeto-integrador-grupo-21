@@ -5,16 +5,17 @@ Este guia explica como executar e validar o Portal de Autoatendimento de TI em a
 ## 1. Pré-requisitos
 
 - Docker Desktop em execução.
-- Python 3.12 ou superior.
-- Node.js e npm.
-- Git ou o ZIP da branch `feat/1-fundacao-backend-frontend`.
+- Python 3.14 e uv.
+- Node.js 24 e npm.
+- Git; utilize a branch da PR que deseja testar.
 
 ## 2. Preparar o backend
 
 Na pasta raiz do projeto, suba o banco PostgreSQL:
 
 ```powershell
-docker compose up -d
+Copy-Item .env.example .env
+docker compose up -d --wait postgres
 ```
 
 Em seguida, entre na pasta `backend`, crie o arquivo local de variáveis e instale as dependências:
@@ -22,7 +23,7 @@ Em seguida, entre na pasta `backend`, crie o arquivo local de variáveis e insta
 ```powershell
 cd backend
 Copy-Item .env.example .env
-pip install -e ".[dev]"
+uv sync --locked --extra dev
 ```
 
 O arquivo `.env` fica apenas no computador de cada pessoa. Não o envie ao GitHub.
@@ -30,14 +31,14 @@ O arquivo `.env` fica apenas no computador de cada pessoa. Não o envie ao GitHu
 Crie os dados de demonstração e garanta a tabela usada no desbloqueio de conta:
 
 ```powershell
-python -m app.db.seed
-python -m app.db.ensure_schema
+uv run --locked --extra dev python -m app.db.seed
+uv run --locked --extra dev python -m app.db.ensure_schema
 ```
 
 Inicie a API:
 
 ```powershell
-python -m uvicorn app.main:app --reload
+uv run --locked --extra dev uvicorn app.main:app --reload
 ```
 
 A API deve ficar disponível em `http://localhost:8000`. Para verificar, abra `http://localhost:8000/health`; a resposta esperada é `{"status":"ok"}`.
@@ -48,7 +49,8 @@ Em outro terminal, entre na pasta `frontend` e execute:
 
 ```powershell
 cd frontend
-npm install
+Copy-Item .env.example .env
+npm ci
 npm run dev
 ```
 
@@ -111,18 +113,22 @@ Faça logout e entre como `mateus@example.test`:
 
 ## 9. Antes de abrir PR
 
-Execute, se disponível:
+Execute:
 
 ```powershell
 cd backend
-pytest
-ruff check .
+uv run --locked --extra dev pytest
+uv run --locked --extra dev ruff check .
+uv run --locked --extra dev ruff format --check .
 ```
 
 ```powershell
 cd frontend
 npm run build
 npm run lint
+npm run typecheck
+npm run format:check
+npm test
 ```
 
 Anexe ao pull request capturas ou gravação curta dos fluxos testados. Não faça push direto na `main`.

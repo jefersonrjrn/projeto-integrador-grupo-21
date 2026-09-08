@@ -1,5 +1,5 @@
 import uuid
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
 from fastapi import HTTPException, status
 from sqlalchemy import func
@@ -32,12 +32,9 @@ def _initial_priority(category: TicketCategory) -> TicketPriority:
 
 
 def _generate_protocol(db: Session) -> str:
-    year = datetime.now(timezone.utc).year
+    year = datetime.now(UTC).year
     count_this_year = (
-        db.query(func.count(Ticket.id))
-        .filter(Ticket.created_at >= date(year, 1, 1))
-        .scalar()
-        or 0
+        db.query(func.count(Ticket.id)).filter(Ticket.created_at >= date(year, 1, 1)).scalar() or 0
     )
     return f"INC-{year}-{count_this_year + 1:04d}"
 
@@ -46,7 +43,9 @@ def get_ticket_with_relations(db: Session, ticket_id: uuid.UUID) -> Ticket | Non
     return _with_relations(db.query(Ticket)).filter(Ticket.id == ticket_id).first()
 
 
-def create_ticket(db: Session, requester: User, title: str, description: str, category: TicketCategory) -> Ticket:
+def create_ticket(
+    db: Session, requester: User, title: str, description: str, category: TicketCategory
+) -> Ticket:
     ticket = Ticket(
         protocol=_generate_protocol(db),
         requester_id=requester.id,
@@ -98,7 +97,10 @@ def get_ticket_for_user(db: Session, ticket_id: uuid.UUID, user: User) -> Ticket
 
 def assign_ticket(db: Session, ticket_id: uuid.UUID, assignee_id: uuid.UUID, actor: User) -> Ticket:
     if assignee_id != actor.id:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="O tecnico so pode assumir o proprio chamado")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="O tecnico so pode assumir o proprio chamado",
+        )
     ticket = db.query(Ticket).filter(Ticket.id == ticket_id).first()
     if not ticket:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chamado nao encontrado")
@@ -112,7 +114,9 @@ def update_priority(db: Session, ticket_id: uuid.UUID, priority: TicketPriority)
     if not ticket:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chamado nao encontrado")
     if ticket.status == TicketStatus.RESOLVED:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Chamado resolvido nao pode ser alterado")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Chamado resolvido nao pode ser alterado"
+        )
     ticket.priority = priority
     db.commit()
     return get_ticket_with_relations(db, ticket.id)
@@ -125,16 +129,27 @@ def update_status(
     if not ticket:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chamado nao encontrado")
     if ticket.status == TicketStatus.RESOLVED:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Chamado resolvido nao pode ser alterado")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Chamado resolvido nao pode ser alterado"
+        )
     if new_status not in VALID_TRANSITIONS.get(ticket.status, set()):
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Transicao de status invalida")
-    if new_status == TicketStatus.OPEN and ticket.status in {TicketStatus.TRIAGE, TicketStatus.IN_PROGRESS} and not comment:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Comentario obrigatorio ao retornar para aberto")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Transicao de status invalida"
+        )
+    if (
+        new_status == TicketStatus.OPEN
+        and ticket.status in {TicketStatus.TRIAGE, TicketStatus.IN_PROGRESS}
+        and not comment
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Comentario obrigatorio ao retornar para aberto",
+        )
 
     previous_status = ticket.status
     ticket.status = new_status
     if new_status == TicketStatus.RESOLVED:
-        ticket.resolved_at = datetime.now(timezone.utc)
+        ticket.resolved_at = datetime.now(UTC)
     db.add(
         TicketEvent(
             ticket_id=ticket.id,
@@ -163,6 +178,12 @@ def employee_dashboard(db: Session, user: User) -> dict:
 def technician_dashboard(db: Session) -> dict:
     return {
         "unassigned_tickets": db.query(Ticket).filter(Ticket.assignee_id.is_(None)).count(),
-        "by_status": {item.value: db.query(Ticket).filter(Ticket.status == item).count() for item in TicketStatus},
-        "by_priority": {item.value: db.query(Ticket).filter(Ticket.priority == item).count() for item in TicketPriority},
+        "by_status": {
+            item.value: db.query(Ticket).filter(Ticket.status == item).count()
+            for item in TicketStatus
+        },
+        "by_priority": {
+            item.value: db.query(Ticket).filter(Ticket.priority == item).count()
+            for item in TicketPriority
+        },
     }

@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
-import { Alert, Button, MenuItem, Paper, TextField, Typography } from "@mui/material";
+import {
+  Alert,
+  Button,
+  MenuItem,
+  Paper,
+  TextField,
+  Typography,
+} from "@mui/material";
 
 import { apiFetch, ApiError } from "../api/client";
 import type { TicketCategory, TicketDetail } from "../types/domain";
@@ -17,10 +24,14 @@ const CATEGORIES: { value: TicketCategory; label: string }[] = [
 
 export default function NewTicketPage() {
   const navigate = useNavigate();
-  const location = useLocation() as { state?: { title?: string; category?: TicketCategory } };
+  const location = useLocation() as {
+    state?: { title?: string; category?: TicketCategory };
+  };
   const [title, setTitle] = useState(location.state?.title ?? "");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState<TicketCategory>(location.state?.category ?? "OTHER");
+  const [category, setCategory] = useState<TicketCategory>(
+    location.state?.category ?? "OTHER",
+  );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const mutation = useMutation({
@@ -30,7 +41,10 @@ export default function NewTicketPage() {
         body: JSON.stringify({ title, description, category }),
       }),
     onSuccess: (ticket) => navigate(`/chamados/${ticket.id}`),
-    onError: (err) => setErrorMessage(err instanceof ApiError ? err.message : "Erro ao abrir chamado."),
+    onError: (err) =>
+      setErrorMessage(
+        err instanceof ApiError ? err.message : "Erro ao abrir chamado.",
+      ),
   });
 
   function handleSubmit(event: React.FormEvent) {
@@ -48,17 +62,61 @@ export default function NewTicketPage() {
   }
 
   return (
-    <Paper sx={{ p: 3, maxWidth: 560 }} component="form" onSubmit={handleSubmit}>
+    <Paper
+      sx={{ p: 3, maxWidth: 560 }}
+      component="form"
+      onSubmit={handleSubmit}
+    >
       <Typography variant="h5" gutterBottom>
         Abrir novo chamado
       </Typography>
-      {errorMessage && <Alert severity="error" sx={{ mb: 2 }} aria-live="polite">{errorMessage}</Alert>}
-      <TextField label="Titulo" fullWidth margin="normal" value={title} onChange={(event) => setTitle(event.target.value)} helperText="Entre 5 e 160 caracteres" inputProps={{ minLength: 5, maxLength: 160 }} required />
-      <TextField select label="Categoria" fullWidth margin="normal" value={category} onChange={(event) => setCategory(event.target.value as TicketCategory)}>
-        {CATEGORIES.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
+      {errorMessage && (
+        <Alert severity="error" sx={{ mb: 2 }} aria-live="polite">
+          {errorMessage}
+        </Alert>
+      )}
+      <TextField
+        label="Titulo"
+        fullWidth
+        margin="normal"
+        value={title}
+        onChange={(event) => setTitle(event.target.value)}
+        helperText="Entre 5 e 160 caracteres"
+        inputProps={{ minLength: 5, maxLength: 160 }}
+        required
+      />
+      <TextField
+        select
+        label="Categoria"
+        fullWidth
+        margin="normal"
+        value={category}
+        onChange={(event) => setCategory(event.target.value as TicketCategory)}
+      >
+        {CATEGORIES.map((option) => (
+          <MenuItem key={option.value} value={option.value}>
+            {option.label}
+          </MenuItem>
+        ))}
       </TextField>
-      <TextField label="Descricao" fullWidth margin="normal" multiline minRows={4} value={description} onChange={(event) => setDescription(event.target.value)} helperText="Entre 10 e 2000 caracteres" inputProps={{ minLength: 10, maxLength: 2000 }} required />
-      <Button type="submit" variant="contained" sx={{ mt: 2 }} disabled={mutation.isPending}>
+      <TextField
+        label="Descricao"
+        fullWidth
+        margin="normal"
+        multiline
+        minRows={4}
+        value={description}
+        onChange={(event) => setDescription(event.target.value)}
+        helperText="Entre 10 e 2000 caracteres"
+        inputProps={{ minLength: 10, maxLength: 2000 }}
+        required
+      />
+      <Button
+        type="submit"
+        variant="contained"
+        sx={{ mt: 2 }}
+        disabled={mutation.isPending}
+      >
         {mutation.isPending ? "Enviando..." : "Abrir chamado"}
       </Button>
     </Paper>

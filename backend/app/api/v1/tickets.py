@@ -67,7 +67,9 @@ def _to_detail(ticket) -> TicketDetail:
 def open_ticket(
     payload: TicketCreate, db: Session = Depends(get_db), current_user=Depends(require_employee)
 ) -> TicketDetail:
-    return _to_detail(create_ticket(db, current_user, payload.title, payload.description, payload.category))
+    return _to_detail(
+        create_ticket(db, current_user, payload.title, payload.description, payload.category)
+    )
 
 
 @router.get("", response_model=list[TicketSummary])
@@ -77,7 +79,10 @@ def get_tickets(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> list[TicketSummary]:
-    return [_to_summary(ticket) for ticket in list_tickets(db, current_user, status_filter, priority_filter)]
+    return [
+        _to_summary(ticket)
+        for ticket in list_tickets(db, current_user, status_filter, priority_filter)
+    ]
 
 
 @router.get("/{ticket_id}", response_model=TicketDetail)

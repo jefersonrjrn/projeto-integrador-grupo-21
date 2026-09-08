@@ -1,4 +1,5 @@
-export type ArticleCategory = "ACCESS" | "SOFTWARE" | "NETWORK" | "HARDWARE" | "SECURITY";
+export type ArticleCategory =
+  "ACCESS" | "SOFTWARE" | "NETWORK" | "HARDWARE" | "SECURITY";
 export type TicketCategory = ArticleCategory | "OTHER";
 export type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 export type TicketStatus = "OPEN" | "TRIAGE" | "IN_PROGRESS" | "RESOLVED";

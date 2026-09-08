@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 import jwt
@@ -20,12 +20,12 @@ def verify_password(plain_password: str, password_hash: str) -> bool:
 
 def create_access_token(subject: UUID, role: str) -> tuple[str, int]:
     expires_delta = timedelta(minutes=settings.jwt_expires_minutes)
-    expire_at = datetime.now(timezone.utc) + expires_delta
+    expire_at = datetime.now(UTC) + expires_delta
     payload = {
         "sub": str(subject),
         "role": role,
         "exp": expire_at,
-        "iat": datetime.now(timezone.utc),
+        "iat": datetime.now(UTC),
     }
     token = jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
     return token, settings.jwt_expires_minutes * 60

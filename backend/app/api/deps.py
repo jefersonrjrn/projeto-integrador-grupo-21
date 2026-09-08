@@ -13,7 +13,9 @@ from app.models.user import User
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 
 
-def get_current_user(token: str | None = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+def get_current_user(
+    token: str | None = Depends(oauth2_scheme), db: Session = Depends(get_db)
+) -> User:
     credentials_error = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED, detail="Sessao ausente ou invalida"
     )
@@ -36,11 +38,15 @@ def get_current_user(token: str | None = Depends(oauth2_scheme), db: Session = D
 
 def require_employee(user: User = Depends(get_current_user)) -> User:
     if user.role != UserRole.EMPLOYEE:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Recurso restrito a colaboradores")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Recurso restrito a colaboradores"
+        )
     return user
 
 
 def require_technician(user: User = Depends(get_current_user)) -> User:
     if user.role != UserRole.TECHNICIAN:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Recurso restrito a tecnicos")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Recurso restrito a tecnicos"
+        )
     return user

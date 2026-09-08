@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Alert, Box, Button, Paper, TextField, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Paper,
+  TextField,
+  Typography,
+} from "@mui/material";
 
 import { apiFetch, ApiError } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
@@ -13,18 +20,26 @@ interface UnlockRequestResponse {
 
 export default function AccountUnlockPage() {
   const { user } = useAuth();
-  const [challenge, setChallenge] = useState<UnlockRequestResponse | null>(null);
+  const [challenge, setChallenge] = useState<UnlockRequestResponse | null>(
+    null,
+  );
   const [code, setCode] = useState("");
   const [success, setSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const requestMutation = useMutation({
-    mutationFn: () => apiFetch<UnlockRequestResponse>("/api/v1/account-unlocks/request-code", { method: "POST" }),
+    mutationFn: () =>
+      apiFetch<UnlockRequestResponse>("/api/v1/account-unlocks/request-code", {
+        method: "POST",
+      }),
     onSuccess: (data) => {
       setChallenge(data);
       setErrorMessage(null);
     },
-    onError: (err) => setErrorMessage(err instanceof ApiError ? err.message : "Erro ao solicitar codigo."),
+    onError: (err) =>
+      setErrorMessage(
+        err instanceof ApiError ? err.message : "Erro ao solicitar codigo.",
+      ),
   });
 
   const verifyMutation = useMutation({
@@ -37,7 +52,10 @@ export default function AccountUnlockPage() {
       setSuccess(true);
       setErrorMessage(null);
     },
-    onError: (err) => setErrorMessage(err instanceof ApiError ? err.message : "Erro ao verificar codigo."),
+    onError: (err) =>
+      setErrorMessage(
+        err instanceof ApiError ? err.message : "Erro ao verificar codigo.",
+      ),
   });
 
   return (
@@ -46,15 +64,32 @@ export default function AccountUnlockPage() {
         Desbloqueio de conta
       </Typography>
 
-      <Alert severity={user?.account_locked ? "warning" : "success"} sx={{ mb: 2 }}>
-        {user?.account_locked ? "Sua conta esta bloqueada." : "Sua conta esta desbloqueada."}
+      <Alert
+        severity={user?.account_locked ? "warning" : "success"}
+        sx={{ mb: 2 }}
+      >
+        {user?.account_locked
+          ? "Sua conta esta bloqueada."
+          : "Sua conta esta desbloqueada."}
       </Alert>
 
-      {success && <Alert severity="success" sx={{ mb: 2 }}>Conta desbloqueada com sucesso.</Alert>}
-      {errorMessage && <Alert severity="error" sx={{ mb: 2 }}>{errorMessage}</Alert>}
+      {success && (
+        <Alert severity="success" sx={{ mb: 2 }}>
+          Conta desbloqueada com sucesso.
+        </Alert>
+      )}
+      {errorMessage && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {errorMessage}
+        </Alert>
+      )}
 
       {!challenge && !success && (
-        <Button variant="contained" onClick={() => requestMutation.mutate()} disabled={requestMutation.isPending}>
+        <Button
+          variant="contained"
+          onClick={() => requestMutation.mutate()}
+          disabled={requestMutation.isPending}
+        >
           Solicitar codigo de verificacao
         </Button>
       )}
@@ -63,7 +98,8 @@ export default function AccountUnlockPage() {
         <Box>
           {challenge.demo_code && (
             <Alert severity="info" sx={{ mb: 2 }}>
-              Codigo de demonstracao: <strong>{challenge.demo_code}</strong> (valido por 5 minutos)
+              Codigo de demonstracao: <strong>{challenge.demo_code}</strong>{" "}
+              (valido por 5 minutos)
             </Alert>
           )}
           <TextField

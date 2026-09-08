@@ -45,5 +45,7 @@ def send_feedback(
     db: Session = Depends(get_db),
     current_user=Depends(require_employee),
 ) -> ArticleFeedbackResponse:
-    feedback = upsert_feedback(db, article_id=article_id, user_id=current_user.id, resolved=payload.resolved)
+    feedback = upsert_feedback(
+        db, article_id=article_id, user_id=current_user.id, resolved=payload.resolved
+    )
     return ArticleFeedbackResponse(article_id=feedback.article_id, resolved=feedback.resolved)

@@ -19,7 +19,9 @@ def create_unlock_request(
     db: Session = Depends(get_db), current_user=Depends(require_employee)
 ) -> UnlockRequestResponse:
     challenge, demo_code = request_code(db, current_user)
-    return UnlockRequestResponse(challenge_id=challenge.id, expires_at=challenge.expires_at, demo_code=demo_code)
+    return UnlockRequestResponse(
+        challenge_id=challenge.id, expires_at=challenge.expires_at, demo_code=demo_code
+    )
 
 
 @router.post("/verify", response_model=UnlockVerifyResponse)

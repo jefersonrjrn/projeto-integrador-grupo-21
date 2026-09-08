@@ -1,7 +1,16 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardActionArea, CardContent, Chip, Grid, MenuItem, TextField, Typography } from "@mui/material";
+import {
+  Card,
+  CardActionArea,
+  CardContent,
+  Chip,
+  Grid,
+  MenuItem,
+  TextField,
+  Typography,
+} from "@mui/material";
 
 import { apiFetch, ApiError } from "../api/client";
 import { LoadingState, EmptyState, ErrorState } from "../components/AsyncState";
@@ -26,7 +35,9 @@ export default function ArticlesPage() {
       const params = new URLSearchParams();
       if (search) params.set("q", search);
       if (category) params.set("category", category);
-      return apiFetch<ArticleSummary[]>(`/api/v1/articles?${params.toString()}`);
+      return apiFetch<ArticleSummary[]>(
+        `/api/v1/articles?${params.toString()}`,
+      );
     },
   });
 
@@ -51,7 +62,9 @@ export default function ArticlesPage() {
             label="Categoria"
             fullWidth
             value={category}
-            onChange={(event) => setCategory(event.target.value as ArticleCategory | "")}
+            onChange={(event) =>
+              setCategory(event.target.value as ArticleCategory | "")
+            }
           >
             {CATEGORIES.map((option) => (
               <MenuItem key={option.value} value={option.value}>
@@ -65,7 +78,11 @@ export default function ArticlesPage() {
       {query.isLoading && <LoadingState label="Carregando artigos..." />}
       {query.isError && (
         <ErrorState
-          message={query.error instanceof ApiError ? query.error.message : "Erro ao carregar artigos."}
+          message={
+            query.error instanceof ApiError
+              ? query.error.message
+              : "Erro ao carregar artigos."
+          }
           onRetry={() => query.refetch()}
         />
       )}

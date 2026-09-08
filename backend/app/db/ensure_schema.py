@@ -2,7 +2,6 @@ from sqlalchemy import text
 
 from app.db.session import engine
 
-
 DDL = """
 DO $$
 BEGIN

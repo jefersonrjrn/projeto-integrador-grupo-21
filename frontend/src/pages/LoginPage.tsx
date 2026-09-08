@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Button, Paper, TextField, Typography, Alert } from "@mui/material";
+import {
+  Box,
+  Button,
+  Paper,
+  TextField,
+  Typography,
+  Alert,
+} from "@mui/material";
 
 import { useAuth } from "../auth/AuthContext";
 import { ApiError } from "../api/client";
@@ -21,22 +28,41 @@ export default function LoginPage() {
       await login(email, password);
       navigate("/");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Nao foi possivel entrar.");
+      setError(
+        err instanceof ApiError ? err.message : "Nao foi possivel entrar.",
+      );
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", p: 2 }}>
-      <Paper sx={{ p: 4, maxWidth: 400, width: "100%" }} component="form" onSubmit={handleSubmit}>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        p: 2,
+      }}
+    >
+      <Paper
+        sx={{ p: 4, maxWidth: 400, width: "100%" }}
+        component="form"
+        onSubmit={handleSubmit}
+      >
         <Typography variant="h5" gutterBottom>
           Portal de Autoatendimento de TI
         </Typography>
         <Alert severity="info" sx={{ mb: 2 }}>
-          Ambiente de demonstracao. Use as credenciais ficticias fornecidas pelo grupo.
+          Ambiente de demonstracao. Use as credenciais ficticias fornecidas pelo
+          grupo.
         </Alert>
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
         <TextField
           label="E-mail"
           type="email"
@@ -55,7 +81,13 @@ export default function LoginPage() {
           onChange={(event) => setPassword(event.target.value)}
           required
         />
-        <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }} disabled={submitting}>
+        <Button
+          type="submit"
+          variant="contained"
+          fullWidth
+          sx={{ mt: 2 }}
+          disabled={submitting}
+        >
           {submitting ? "Entrando..." : "Entrar"}
         </Button>
       </Paper>

@@ -61,7 +61,11 @@ export default function AppLayout() {
           </Typography>
           {user && (
             <>
-              <Chip label={user.role === "TECHNICIAN" ? "Tecnico" : "Colaborador"} color="secondary" size="small" />
+              <Chip
+                label={user.role === "TECHNICIAN" ? "Tecnico" : "Colaborador"}
+                color="secondary"
+                size="small"
+              />
               <Typography variant="body2">{user.name}</Typography>
               <Button color="inherit" onClick={handleLogout}>
                 Sair
@@ -92,14 +96,22 @@ export default function AppLayout() {
         <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
           <List sx={{ width: 240 }}>
             {links.map((link) => (
-              <ListItemButton key={link.to} component={Link} to={link.to} onClick={() => setDrawerOpen(false)}>
+              <ListItemButton
+                key={link.to}
+                component={Link}
+                to={link.to}
+                onClick={() => setDrawerOpen(false)}
+              >
                 <ListItemText primary={link.label} />
               </ListItemButton>
             ))}
           </List>
         </Drawer>
 
-        <Box component="main" sx={{ flex: 1, p: { xs: 2, sm: 3 }, minWidth: 360 }}>
+        <Box
+          component="main"
+          sx={{ flex: 1, p: { xs: 2, sm: 3 }, minWidth: 360 }}
+        >
           <Chip
             label="Ambiente de demonstracao: dados e integracoes sao ficticios"
             color="warning"

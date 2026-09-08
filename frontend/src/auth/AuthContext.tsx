@@ -1,4 +1,11 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { apiFetch } from "../api/client";
 
 export type UserRole = "EMPLOYEE" | "TECHNICIAN";
@@ -38,10 +45,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   async function login(email: string, password: string) {
-    const tokenResponse = await apiFetch<{ access_token: string }>("/api/v1/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
-    });
+    const tokenResponse = await apiFetch<{ access_token: string }>(
+      "/api/v1/auth/login",
+      {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+      },
+    );
     sessionStorage.setItem("access_token", tokenResponse.access_token);
     const me = await apiFetch<CurrentUser>("/api/v1/auth/me");
     setUser(me);
@@ -52,7 +62,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }
 
-  const value = useMemo(() => ({ user, isLoading, login, logout }), [user, isLoading]);
+  const value = useMemo(
+    () => ({ user, isLoading, login, logout }),
+    [user, isLoading],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

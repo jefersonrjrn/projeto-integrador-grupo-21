@@ -15,7 +15,11 @@ import {
 import { apiFetch, ApiError } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
 import { LoadingState, ErrorState } from "../components/AsyncState";
-import type { TicketDetail, TicketPriority, TicketStatus } from "../types/domain";
+import type {
+  TicketDetail,
+  TicketPriority,
+  TicketStatus,
+} from "../types/domain";
 
 const NEXT_STATUS: Record<TicketStatus, TicketStatus[]> = {
   OPEN: ["TRIAGE"],
@@ -50,7 +54,10 @@ export default function TicketDetailPage() {
       setComment("");
       setErrorMessage(null);
     },
-    onError: (err) => setErrorMessage(err instanceof ApiError ? err.message : "Erro ao atualizar status."),
+    onError: (err) =>
+      setErrorMessage(
+        err instanceof ApiError ? err.message : "Erro ao atualizar status.",
+      ),
   });
 
   const priorityMutation = useMutation({
@@ -59,12 +66,16 @@ export default function TicketDetailPage() {
         method: "PATCH",
         body: JSON.stringify({ priority }),
       }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ticket", id] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["ticket", id] }),
   });
 
   if (query.isLoading) return <LoadingState label="Carregando chamado..." />;
   if (query.isError) {
-    const message = query.error instanceof ApiError ? query.error.message : "Erro ao carregar o chamado.";
+    const message =
+      query.error instanceof ApiError
+        ? query.error.message
+        : "Erro ao carregar o chamado.";
     return <ErrorState message={message} onRetry={() => query.refetch()} />;
   }
 
@@ -82,17 +93,33 @@ export default function TicketDetailPage() {
         <Chip label={ticket.category} variant="outlined" />
       </Box>
 
-      <Typography sx={{ mb: 3, whiteSpace: "pre-line" }}>{ticket.description}</Typography>
+      <Typography sx={{ mb: 3, whiteSpace: "pre-line" }}>
+        {ticket.description}
+      </Typography>
 
-      {errorMessage && <Alert severity="error" sx={{ mb: 2 }}>{errorMessage}</Alert>}
+      {errorMessage && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {errorMessage}
+        </Alert>
+      )}
 
       {isTechnician && (
-        <Box sx={{ mb: 3, display: "flex", flexDirection: "column", gap: 2, maxWidth: 360 }}>
+        <Box
+          sx={{
+            mb: 3,
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+            maxWidth: 360,
+          }}
+        >
           <TextField
             select
             label="Alterar prioridade"
             value={ticket.priority}
-            onChange={(event) => priorityMutation.mutate(event.target.value as TicketPriority)}
+            onChange={(event) =>
+              priorityMutation.mutate(event.target.value as TicketPriority)
+            }
           >
             {PRIORITIES.map((priority) => (
               <MenuItem key={priority} value={priority}>
@@ -128,17 +155,26 @@ export default function TicketDetailPage() {
         Historico
       </Typography>
       {ticket.events.length === 0 ? (
-        <Typography color="text.secondary">Nenhum evento registrado ainda.</Typography>
+        <Typography color="text.secondary">
+          Nenhum evento registrado ainda.
+        </Typography>
       ) : (
         ticket.events.map((event) => (
-          <Box key={event.id} sx={{ borderLeft: "2px solid #ccc", pl: 2, mb: 2 }}>
+          <Box
+            key={event.id}
+            sx={{ borderLeft: "2px solid #ccc", pl: 2, mb: 2 }}
+          >
             <Typography variant="body2" color="text.secondary">
               {new Date(event.created_at).toLocaleString("pt-BR")}
             </Typography>
             <Typography variant="body2">
-              {event.from_status ? `${event.from_status} -> ${event.to_status}` : `Criado como ${event.to_status}`}
+              {event.from_status
+                ? `${event.from_status} -> ${event.to_status}`
+                : `Criado como ${event.to_status}`}
             </Typography>
-            {event.comment && <Typography variant="body2">{event.comment}</Typography>}
+            {event.comment && (
+              <Typography variant="body2">{event.comment}</Typography>
+            )}
           </Box>
         ))
       )}

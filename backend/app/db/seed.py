@@ -1,6 +1,7 @@
 """Popula dados minimos de demonstracao. Idempotente."""
+
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from app.core.security import hash_password
 from app.db.session import Base, SessionLocal, engine
@@ -87,7 +88,7 @@ def run_seed() -> None:
         db.commit()
 
         if db.query(Ticket).count() == 0:
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             tickets_seed = [
                 dict(
                     protocol="INC-2026-0001",
@@ -122,7 +123,9 @@ def run_seed() -> None:
                     assignee_id=mateus.id if ticket_data["status"] != TicketStatus.OPEN else None,
                     created_at=now - timedelta(days=3 - offset),
                     updated_at=now - timedelta(days=1),
-                    resolved_at=now - timedelta(hours=2) if ticket_data["status"] == TicketStatus.RESOLVED else None,
+                    resolved_at=now - timedelta(hours=2)
+                    if ticket_data["status"] == TicketStatus.RESOLVED
+                    else None,
                     **ticket_data,
                 )
                 db.add(ticket)

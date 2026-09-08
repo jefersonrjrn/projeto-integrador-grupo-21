@@ -5,8 +5,8 @@ Revises:
 Create Date: 2026-09-07
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision = "0002_create_unlock_requests"
@@ -27,7 +27,9 @@ def upgrade() -> None:
     op.create_table(
         "unlock_requests",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("user_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id"), nullable=False),
+        sa.Column(
+            "user_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id"), nullable=False
+        ),
         sa.Column("code_hash", sa.String(255), nullable=False),
         sa.Column("status", unlock_status, nullable=False),
         sa.Column("attempts", sa.SmallInteger(), nullable=False, server_default="0"),

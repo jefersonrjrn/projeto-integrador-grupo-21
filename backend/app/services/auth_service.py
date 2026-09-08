@@ -10,7 +10,9 @@ def authenticate(db: Session, email: str, password: str) -> tuple[User, str, int
     user = db.query(User).filter(User.email == normalized_email).first()
 
     if not user or not verify_password(password, user.password_hash):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciais invalidas")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciais invalidas"
+        )
 
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Usuario inativo")

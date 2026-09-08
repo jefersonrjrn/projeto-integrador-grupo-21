@@ -29,7 +29,7 @@ export default function ArticleDetailPage() {
       setFeedbackMessage(
         resolved
           ? "Obrigado pelo feedback. Ficamos felizes que o artigo ajudou."
-          : "Feedback registrado. Voce pode abrir um chamado para receber ajuda."
+          : "Feedback registrado. Voce pode abrir um chamado para receber ajuda.",
       );
       queryClient.invalidateQueries({ queryKey: ["article", slug] });
     },
@@ -37,7 +37,10 @@ export default function ArticleDetailPage() {
 
   if (query.isLoading) return <LoadingState label="Carregando artigo..." />;
   if (query.isError) {
-    const message = query.error instanceof ApiError ? query.error.message : "Erro ao carregar o artigo.";
+    const message =
+      query.error instanceof ApiError
+        ? query.error.message
+        : "Erro ao carregar o artigo.";
     return <ErrorState message={message} onRetry={() => query.refetch()} />;
   }
 
@@ -45,7 +48,9 @@ export default function ArticleDetailPage() {
 
   function handleNotResolved() {
     feedbackMutation.mutate(false);
-    navigate("/chamados/novo", { state: { title: article.title, category: article.category } });
+    navigate("/chamados/novo", {
+      state: { title: article.title, category: article.category },
+    });
   }
 
   return (
@@ -53,7 +58,9 @@ export default function ArticleDetailPage() {
       <Typography variant="h5" gutterBottom>
         {article.title}
       </Typography>
-      <Typography sx={{ whiteSpace: "pre-line", mb: 3 }}>{article.content}</Typography>
+      <Typography sx={{ whiteSpace: "pre-line", mb: 3 }}>
+        {article.content}
+      </Typography>
 
       <Typography variant="subtitle1" gutterBottom>
         Este artigo resolveu sua duvida?
@@ -64,10 +71,20 @@ export default function ArticleDetailPage() {
         </Alert>
       )}
       <Box sx={{ display: "flex", gap: 2 }}>
-        <Button variant="contained" color="success" onClick={() => feedbackMutation.mutate(true)} disabled={feedbackMutation.isPending}>
+        <Button
+          variant="contained"
+          color="success"
+          onClick={() => feedbackMutation.mutate(true)}
+          disabled={feedbackMutation.isPending}
+        >
           Sim, resolveu
         </Button>
-        <Button variant="outlined" color="warning" onClick={handleNotResolved} disabled={feedbackMutation.isPending}>
+        <Button
+          variant="outlined"
+          color="warning"
+          onClick={handleNotResolved}
+          disabled={feedbackMutation.isPending}
+        >
           Nao resolveu, abrir chamado
         </Button>
       </Box>

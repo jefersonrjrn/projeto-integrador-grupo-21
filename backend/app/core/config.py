@@ -1,15 +1,16 @@
 from functools import lru_cache
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
-    database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/portal_ti"
-    jwt_secret: str = "troque-este-valor-por-32-bytes-aleatorios-em-producao"
+    database_url: str = Field(min_length=1)
+    jwt_secret: str = Field(min_length=32)
     jwt_algorithm: str = "HS256"
-    jwt_expires_minutes: int = 30
+    jwt_expires_minutes: int = Field(default=30, gt=0)
     demo_mode: bool = True
     cors_origins: str = "http://localhost:5173,http://localhost:4173"
 
