@@ -33,6 +33,9 @@ export default function NewTicketPage() {
     location.state?.category ?? "OTHER",
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const hasArticleSuggestion = Boolean(
+    location.state?.title || location.state?.category,
+  );
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -70,6 +73,12 @@ export default function NewTicketPage() {
       <Typography variant="h5" gutterBottom>
         Abrir novo chamado
       </Typography>
+      {hasArticleSuggestion && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Preenchemos uma sugestao com base no artigo. Revise e edite os campos
+          antes de enviar.
+        </Alert>
+      )}
       {errorMessage && (
         <Alert severity="error" sx={{ mb: 2 }} aria-live="polite">
           {errorMessage}

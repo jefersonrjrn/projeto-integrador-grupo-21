@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
+  Box,
+  Button,
   Card,
   CardActionArea,
   CardContent,
@@ -28,6 +30,7 @@ const CATEGORIES: { value: ArticleCategory | ""; label: string }[] = [
 
 export default function ArticlesPage() {
   const { user } = useAuth();
+  const [searchDraft, setSearchDraft] = useState("");
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<ArticleCategory | "">("");
 
@@ -43,39 +46,57 @@ export default function ArticlesPage() {
     },
   });
 
+  function handleSearch(event: React.FormEvent) {
+    event.preventDefault();
+    setSearch(searchDraft.trim());
+  }
+
   return (
     <>
       <Typography variant="h5" gutterBottom>
         Base de conhecimento
       </Typography>
 
-      <Grid container spacing={2} sx={{ mb: 2 }}>
-        <Grid item xs={12} sm={8}>
-          <TextField
-            label="Pesquisar artigos"
-            fullWidth
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
+      <Box
+        component="form"
+        onSubmit={handleSearch}
+        role="search"
+        sx={{ mb: 2 }}
+      >
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Pesquisar artigos"
+              type="search"
+              fullWidth
+              value={searchDraft}
+              onChange={(event) => setSearchDraft(event.target.value)}
+            />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <TextField
+              select
+              label="Categoria"
+              fullWidth
+              value={category}
+              onChange={(event) =>
+                setCategory(event.target.value as ArticleCategory | "")
+              }
+            >
+              {CATEGORIES.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+          <Grid item xs={12} sm={2}>
+            <Button type="submit" variant="contained" fullWidth>
+              Buscar
+            </Button>
+          </Grid>
         </Grid>
-        <Grid item xs={12} sm={4}>
-          <TextField
-            select
-            label="Categoria"
-            fullWidth
-            value={category}
-            onChange={(event) =>
-              setCategory(event.target.value as ArticleCategory | "")
-            }
-          >
-            {CATEGORIES.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </TextField>
-        </Grid>
-      </Grid>
+      </Box>
 
       {query.isLoading && <LoadingState label="Carregando artigos..." />}
       {query.isError && (

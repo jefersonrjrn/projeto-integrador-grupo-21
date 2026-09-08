@@ -71,7 +71,11 @@ Entre como `thiago@example.test` e valide:
 
 - Dashboard mostra o estado da conta e contagens de chamados.
 - Ajuda lista artigos e permite pesquisar e filtrar por categoria.
+- Digitar uma pesquisa não atualiza a lista até selecionar **Buscar** ou pressionar Enter.
 - Abrir um artigo e clicar em “Sim, resolveu” exibe confirmação de feedback.
+- O perfil técnico consegue consultar artigos, mas não vê os controles de feedback.
+- Em “Não resolveu”, a tela de novo chamado só abre depois que o feedback for salvo;
+  título e categoria chegam como sugestões editáveis.
 - Clicar em “Não resolveu, abrir chamado” leva ao formulário com título e categoria preenchidos.
 - Criar chamado com título entre 5 e 160 caracteres e descrição entre 10 e 2000 caracteres.
 - Categoria `NETWORK` ou `SECURITY` cria chamado com prioridade inicial `HIGH`; as demais iniciam em `MEDIUM`.
