@@ -4,6 +4,14 @@ MVP acadêmico para reduzir incidentes repetitivos de suporte Nível 1. A aplica
 
 > Este projeto é uma prova de conceito. Todos os usuários, chamados e integrações são fictícios; nenhuma infraestrutura bancária real será acessada.
 
+## Membros do grupo
+
+- Jeferson Oliveira dos Santos
+- Luiz Fernando de Castro
+- Adriano Fragni Altobello
+- Ryan da Silva
+- Alan Correa Barcelos
+
 ## Estrutura planejada
 
 ```text
